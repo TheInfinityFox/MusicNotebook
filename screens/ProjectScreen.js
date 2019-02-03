@@ -32,7 +32,7 @@ export default class ProjectsScreen extends React.Component {
     this.state = {
       dataSource: ds.cloneWithRows(examples),
     };
-    console.log(this.state.dataSource);
+    // console.log(this.state.dataSource);
   }
   
   // static navigationOptions = {

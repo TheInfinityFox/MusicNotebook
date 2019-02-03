@@ -7,6 +7,8 @@ import ProjectScreen from '../screens/ProjectScreen';
 import DemoScreen from '../screens/DemoScreen';
 import LinksScreen from '../screens/LinksScreen';
 import SettingsScreen from '../screens/SettingsScreen';
+import ExpoScreen from '../screens/ExpoScreen';
+import SnackScreen from '../screens/SnackScreen';
 
 const ProjectStack = createStackNavigator({
   Home: ProjectScreen,
@@ -72,9 +74,40 @@ SettingsStack.navigationOptions = {
   ),
 };
 
+const ExpoStack = createStackNavigator({
+  Expo: ExpoScreen,
+});
+
+ExpoStack.navigationOptions = {
+  tabBarLabel: 'Expo',
+  tabBarIcon: ({ focused }) => (
+    <TabBarIcon
+      focused={focused}
+      name={Platform.OS === 'ios' ? 'ios-options' : 'md-options'}
+    />
+  ),
+};
+
+const SnackStack = createStackNavigator({
+  Snack: SnackScreen,
+});
+
+SnackStack.navigationOptions = {
+  tabBarLabel: 'Snack',
+  tabBarIcon: ({ focused }) => (
+    <TabBarIcon
+      focused={focused}
+      name={Platform.OS === 'ios' ? 'ios-options' : 'md-options'}
+    />
+  ),
+};
+
 export default createBottomTabNavigator({
+  ExpoStack,
   ProjectStack,
   DemoStack,
   LinksStack,
-  SettingsStack,
+  // SettingsStack,
+  
+  SnackStack
 });
