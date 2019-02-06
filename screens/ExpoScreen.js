@@ -409,14 +409,33 @@ export default class ExpoScreen extends React.Component {
                 </View>
                 <View />
               </View>
-              <View style={[styles.buttonsContainerBase]}>
-                <View style={styles.recordingContainer}>
-                <TouchableHighlight
+              {/* <View style={[styles.buttonsContainerBase]}> */}
+              <View style={styles.recordingContainer}>
+                {/* <View/> */}
+                <View><TouchableHighlight
                   underlayColor={BACKGROUND_COLOR}
-                  style={styles.wrapper} >
+                  style={styles.wrapper}
+                  onPress={this._onRecordPressed}
+                  disabled={this.state.isLoading}>
                   <FontAwesome name="microphone" size={ICON_RECORD_SIZE} />
                 </TouchableHighlight>
                 </View>
+                <View>
+                  <Text style={[styles.liveText, { fontFamily: 'space-mono-regular' }]}>
+                    {this.state.isRecording ? 'LIVE' : ''}
+                  </Text>
+                  <View>
+                    <Image
+                      style={[styles.image, { opacity: this.state.isRecording ? 1.0 : 0.0 }]}
+                      source={ICON_RECORDING.module}
+                    />
+                    <Text style={{fontFamily:'space-mono-regular'}}>
+                      {this._getRecordingTimestamp()}
+                    </Text>
+                  </View>
+                  <View />
+                </View>
+
               </View>
               <View style={[styles.buttonsContainerBase, styles.tabBarInfoContainer]}>
                 <Text style={[styles.timestamp, { fontFamily: 'space-mono-regular' }]}>Rate:</Text>
@@ -438,6 +457,7 @@ export default class ExpoScreen extends React.Component {
                   </Text>
                 </TouchableHighlight>
               </View>
+              {/* </View> */}
             </View>
           </View>
         )
@@ -718,7 +738,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'green'
+    // backgroundColor: 'green'
   },
   buttonsContainerTopRow: {
     maxHeight: ICON_MUTED_BUTTON.height,
@@ -728,25 +748,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
-    backgroundColor: 'red'
+    // backgroundColor: 'red'
   },
   volumeContainer: {
     flex: 2,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: 'green'
+    // backgroundColor: 'green'
   },
   volumeSlider: {
     width: DEVICE_WIDTH / 2.0 - ICON_MUTED_BUTTON.width,
   },
   recordingContainer: {
     flex: 1,
-    flexDirection: 'column',
-    justifyContent: 'space-between',
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
     alignItems: 'center',
-    alignSelf: 'center',
-    backgroundColor: 'grey'
+    // alignSelf: 'start',
+    // backgroundColor: 'grey'
   },
   rateSlider: {
     width: DEVICE_WIDTH / 2.0,
