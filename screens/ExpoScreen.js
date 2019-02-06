@@ -52,9 +52,10 @@ const RATE_SCALE = 3.0;
 export default class ExpoScreen extends React.Component {
   constructor(props) {
     super(props);
-    this.recording = null;
-    this.sound = null;
-    this.sounds = null;
+    this.currentRecording = null;
+    this.recordings = [];
+    this.currentSsound = null;
+    this.sounds = [];
     this.isSeeking = false;
     this.shouldPlayAtEndOfSeek = false;
     this.state = {
@@ -73,7 +74,6 @@ export default class ExpoScreen extends React.Component {
       volume: 1.0,
       rate: 1.0,
     };
-    console.log("Height", Constants.statusBarHeight);
     this.recordingSettings = JSON.parse(JSON.stringify(Audio.RECORDING_OPTIONS_PRESET_LOW_QUALITY));
     // // UNCOMMENT THIS TO TEST maxFileSize:
     // this.recordingSettings.android['maxFileSize'] = 12000;
@@ -92,6 +92,8 @@ export default class ExpoScreen extends React.Component {
     })();
     this._askForPermissions();
   }
+
+  
 
   _askForPermissions = async () => {
     const response = await Permissions.askAsync(Permissions.AUDIO_RECORDING);
@@ -146,11 +148,11 @@ export default class ExpoScreen extends React.Component {
     this.setState({
       isLoading: true,
     });
-    if (this.sound !== null) {
-      await this.sound.unloadAsync();
-      this.sound.setOnPlaybackStatusUpdate(null);
-      this.sound = null;
-    }
+    // if (this.sound !== null) {
+    //   await this.sound.unloadAsync();
+    //   this.sound.setOnPlaybackStatusUpdate(null);
+    //   this.sound = null;
+    // }
     await Audio.setAudioModeAsync({
       allowsRecordingIOS: true,
       interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX,
@@ -159,17 +161,14 @@ export default class ExpoScreen extends React.Component {
       interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DO_NOT_MIX,
       playThroughEarpieceAndroid: false
     });
-    if (this.recording !== null) {
-      this.recording.setOnRecordingStatusUpdate(null);
-      this.recording = null;
-    }
 
     const recording = new Audio.Recording();
     await recording.prepareToRecordAsync(this.recordingSettings);
     recording.setOnRecordingStatusUpdate(this._updateScreenForRecordingStatus);
 
-    this.recording = recording;
-    await this.recording.startAsync(); // Will call this._updateScreenForRecordingStatus to update the screen.
+    this.currentRecording = recording;
+    this.recordings.push(this.currentRecording);
+    await this.currentRecording.startAsync(); // Will call this._updateScreenForRecordingStatus to update the screen.
     this.setState({
       isLoading: false,
     });
@@ -179,14 +178,14 @@ export default class ExpoScreen extends React.Component {
     this.setState({
       isLoading: true,
     });
-    console.log(this);
+
     try {
-      await this.recording.stopAndUnloadAsync();
+      await this.currentRecording.stopAndUnloadAsync();
     } catch (error) {
-      // Do nothing -- we are already unloaded.
+      console.log(error);
     }
-    console.log(this.recording.getURI());
-    const info = await FileSystem.getInfoAsync(this.recording.getURI());
+    console.log(this.currentRecording.getURI());
+    const info = await FileSystem.getInfoAsync(this.currentRecording.getURI());
     console.log(`FILE INFO: ${JSON.stringify(info)}`);
     await Audio.setAudioModeAsync({
       allowsRecordingIOS: false,
@@ -198,7 +197,7 @@ export default class ExpoScreen extends React.Component {
       playThroughEarpieceAndroid: false
 
     });
-    const { sound, status } = await this.recording.createNewLoadedSound(
+    const { sound, status } = await this.currentRecording.createNewLoadedSoundAsync(
       {
         isLooping: true,
         isMuted: this.state.muted,
@@ -208,7 +207,10 @@ export default class ExpoScreen extends React.Component {
       },
       this._updateScreenForSoundStatus
     );
-    this.sound = sound;
+  
+    this.lastSound = sound;
+    this.sounds.push(sound);
+  
     this.setState({
       isLoading: false,
     });
@@ -333,6 +335,17 @@ export default class ExpoScreen extends React.Component {
     }
     return `${this._getMMSSFromMillis(0)}`;
   }
+
+  _renderNewSoundBox() {
+    return (
+      <View style={styles.container}>
+        <TouchableOpacity style={styles.button} onPress={}>
+            <Text style={styles.buttonText}>
+              Play me
+            </Text>
+          </TouchableOpacity>
+      </View>
+    );
 
   render() {
     return !this.state.fontLoaded ? (
