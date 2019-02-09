@@ -12,7 +12,8 @@ import {
   StyleSheet,
   Text,
   TouchableHighlight,
-  View,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import Expo, { Asset, Audio, Constants, FileSystem, Font, Permissions } from 'expo';
 import { FontAwesome } from '@expo/vector-icons';
@@ -54,7 +55,7 @@ export default class ExpoScreen extends React.Component {
     super(props);
     this.currentRecording = null;
     this.recordings = [];
-    this.currentSsound = null;
+    this.currentSound = null;
     this.sounds = [];
     this.isSeeking = false;
     this.shouldPlayAtEndOfSeek = false;
@@ -63,8 +64,8 @@ export default class ExpoScreen extends React.Component {
       isLoading: false,
       isPlaybackAllowed: false,
       muted: false,
-      soundPosition: null,
-      soundDuration: null,
+      currentSoundPosition: null,
+      currentSoundDuration: null,
       recordingDuration: null,
       shouldPlay: false,
       isPlaying: false,
@@ -93,7 +94,10 @@ export default class ExpoScreen extends React.Component {
     this._askForPermissions();
   }
 
-  
+  componentDidUpdate() {
+    //console.log(this.state)
+    // console.log('Component Updated!')
+  }
 
   _askForPermissions = async () => {
     const response = await Permissions.askAsync(Permissions.AUDIO_RECORDING);
@@ -105,8 +109,8 @@ export default class ExpoScreen extends React.Component {
   _updateScreenForSoundStatus = status => {
     if (status.isLoaded) {
       this.setState({
-        soundDuration: status.durationMillis,
-        soundPosition: status.positionMillis,
+        currentSoundDuration: status.durationMillis,
+        currentSoundPosition: status.positionMillis,
         shouldPlay: status.shouldPlay,
         isPlaying: status.isPlaying,
         rate: status.rate,
@@ -117,8 +121,8 @@ export default class ExpoScreen extends React.Component {
       });
     } else {
       this.setState({
-        soundDuration: null,
-        soundPosition: null,
+        currentSoundDuration: null,
+        currentSoundPosition: null,
         isPlaybackAllowed: false,
       });
       if (status.error) {
@@ -148,10 +152,10 @@ export default class ExpoScreen extends React.Component {
     this.setState({
       isLoading: true,
     });
-    // if (this.sound !== null) {
-    //   await this.sound.unloadAsync();
-    //   this.sound.setOnPlaybackStatusUpdate(null);
-    //   this.sound = null;
+    // if (this.currentSound !== null) {
+    //   await this.currentSound.unloadAsync();
+    //   this.currentSound.setOnPlaybackStatusUpdate(null);
+    //   this.currentSound = null;
     // }
     await Audio.setAudioModeAsync({
       allowsRecordingIOS: true,
@@ -199,7 +203,8 @@ export default class ExpoScreen extends React.Component {
     });
     const { sound, status } = await this.currentRecording.createNewLoadedSoundAsync(
       {
-        isLooping: true,
+        isLooping: false,
+        shouldPlay: false,
         isMuted: this.state.muted,
         volume: this.state.volume,
         rate: this.state.rate,
@@ -208,9 +213,9 @@ export default class ExpoScreen extends React.Component {
       this._updateScreenForSoundStatus
     );
   
-    this.lastSound = sound;
+    this.currentSound = sound;
     this.sounds.push(sound);
-  
+
     this.setState({
       isLoading: false,
     });
@@ -225,37 +230,37 @@ export default class ExpoScreen extends React.Component {
   };
 
   _onPlayPausePressed = () => {
-    if (this.sound != null) {
+    if (this.currentSound != null) {
       if (this.state.isPlaying) {
-        this.sound.pauseAsync();
+        this.currentSound.pauseAsync();
       } else {
-        this.sound.playAsync();
+        this.currentSound.playAsync();
       }
     }
   };
 
   _onStopPressed = () => {
-    if (this.sound != null) {
-      this.sound.stopAsync();
+    if (this.currentSound != null) {
+      this.currentSound.stopAsync();
     }
   };
 
   _onMutePressed = () => {
-    if (this.sound != null) {
-      this.sound.setIsMutedAsync(!this.state.muted);
+    if (this.currentSound != null) {
+      this.currentSound.setIsMutedAsync(!this.state.muted);
     }
   };
 
   _onVolumeSliderValueChange = value => {
-    if (this.sound != null) {
-      this.sound.setVolumeAsync(value);
+    if (this.currentSound != null) {
+      this.currentSound.setVolumeAsync(value);
     }
   };
 
   _trySetRate = async (rate, shouldCorrectPitch) => {
-    if (this.sound != null) {
+    if (this.currentSound != null) {
       try {
-        await this.sound.setRateAsync(rate, shouldCorrectPitch);
+        await this.currentSound.setRateAsync(rate, shouldCorrectPitch);
       } catch (error) {
         // Rate changing could not be performed, possibly because the client's Android API is too old.
       }
@@ -271,32 +276,32 @@ export default class ExpoScreen extends React.Component {
   };
 
   _onSeekSliderValueChange = value => {
-    if (this.sound != null && !this.isSeeking) {
+    if (this.currentSound != null && !this.isSeeking) {
       this.isSeeking = true;
       this.shouldPlayAtEndOfSeek = this.state.shouldPlay;
-      this.sound.pauseAsync();
+      this.currentSound.pauseAsync();
     }
   };
 
   _onSeekSliderSlidingComplete = async value => {
-    if (this.sound != null) {
+    if (this.currentSound != null) {
       this.isSeeking = false;
-      const seekPosition = value * this.state.soundDuration;
+      const seekPosition = value * this.state.currentSoundDuration;
       if (this.shouldPlayAtEndOfSeek) {
-        this.sound.playFromPositionAsync(seekPosition);
+        this.currentSound.playFromPositionAsync(seekPosition);
       } else {
-        this.sound.setPositionAsync(seekPosition);
+        this.currentSound.setPositionAsync(seekPosition);
       }
     }
   };
 
   _getSeekSliderPosition() {
     if (
-      this.sound != null &&
-      this.state.soundPosition != null &&
-      this.state.soundDuration != null
+      this.currentSound != null &&
+      this.state.currentSoundPosition != null &&
+      this.state.currentSoundDuration != null
     ) {
-      return this.state.soundPosition / this.state.soundDuration;
+      return this.state.currentSoundPosition / this.state.currentSoundDuration;
     }
     return 0;
   }
@@ -311,22 +316,22 @@ export default class ExpoScreen extends React.Component {
       if (number < 10) {
         return '0' + string;
       }
-      return string;
-    };
+      return string;  
+    }; 
     return padWithZero(minutes) + ':' + padWithZero(seconds);
   }
 
   _getPlaybackTimestamp() {
     if (
-      this.sound != null &&
-      this.state.soundPosition != null &&
-      this.state.soundDuration != null
+      this.currentSound != null &&
+      this.state.currentSoundPosition != null &&
+      this.state.currentSoundDuration != null
     ) {
-      return `${this._getMMSSFromMillis(this.state.soundPosition)} / ${this._getMMSSFromMillis(
-        this.state.soundDuration
+      return `${this._getMMSSFromMillis(this.state.currentSoundPosition)} / ${this._getMMSSFromMillis(
+        this.state.currentSoundDuration
       )}`;
     }
-    return '';
+    return ''; 
   }
 
   _getRecordingTimestamp() {
@@ -336,16 +341,43 @@ export default class ExpoScreen extends React.Component {
     return `${this._getMMSSFromMillis(0)}`;
   }
 
-  _renderNewSoundBox() {
+  async _playAndPauseSound(sound) {
+    let status = await sound.getStatusAsync();
+    if(sound !== null){
+      if(this.state.isPlaying){
+        sound.pauseAsync();
+      }
+      else{
+        if(status.positionMillis === status.durationMillis){ //sound is over
+          sound.replayAsync();
+        }
+        else{ //sound is not over
+          sound.playAsync();
+        }
+      }
+    }
+  }
+
+  _renderSoundBoxes() { 
     return (
-      <View style={styles.container}>
-        <TouchableOpacity style={styles.button} onPress={}>
-            <Text style={styles.buttonText}>
-              Play me
-            </Text>
-          </TouchableOpacity>
-      </View>
+      this.sounds.length === 0 ? (
+        <View>
+          <Text>No elements yet!</Text>
+        </View>
+      ) : (
+     
+        this.sounds.map((sound, key) => (
+          <View key={key} style={styles.card}>
+          <TouchableOpacity style={styles.button} onPress={() => this._playAndPauseSound(sound)}>
+          <Text style={styles.buttonText}>
+            {key}
+          </Text>
+        </TouchableOpacity>
+        </View>
+        ))  
+      )
     );
+  }
 
   render() {
     return !this.state.fontLoaded ? (
@@ -364,6 +396,10 @@ export default class ExpoScreen extends React.Component {
               <View style={styles.titleContainer}>
                 <Text style={styles.titleText}>Recording Screen</Text>
               </View>
+              <View style={styles.cardsContainer}>
+                {this._renderSoundBoxes()}
+              </View>
+              
             </View>
             <View style={styles.bottomHalfContainer}>
               <View style={styles.playbackContainer}>
@@ -380,7 +416,7 @@ export default class ExpoScreen extends React.Component {
                   {this._getPlaybackTimestamp()}
                 </Text>
               </View>
-              <View style={[styles.buttonsContainerBase, styles.buttonsContainerTopRow]}>
+              {/* <View style={[styles.buttonsContainerBase, styles.buttonsContainerTopRow]}>
                 <View style={styles.playStopContainer}>
                   <TouchableHighlight
                     underlayColor={BACKGROUND_COLOR}
@@ -405,7 +441,6 @@ export default class ExpoScreen extends React.Component {
                   <TouchableHighlight
                     underlayColor={BACKGROUND_COLOR}
                     style={styles.wrapper}
-                    onPress={this._onPlayPausePressed}
                     disabled={!this.state.isPlaybackAllowed || this.state.isLoading}>
                     <Image
                       style={styles.image}
@@ -415,13 +450,13 @@ export default class ExpoScreen extends React.Component {
                   <TouchableHighlight
                     underlayColor={BACKGROUND_COLOR}
                     style={styles.wrapper}
-                    onPress={this._onStopPressed}
+                    
                     disabled={!this.state.isPlaybackAllowed || this.state.isLoading}>
                     <Image style={styles.image} source={ICON_STOP_BUTTON.module} />
                   </TouchableHighlight>
                 </View>
                 <View />
-              </View>
+              </View> */}
               {/* <View style={[styles.buttonsContainerBase]}> */}
               <View style={styles.recordingContainer}>
                 {/* <View/> */}
@@ -668,6 +703,18 @@ const styles = StyleSheet.create({
   titleText: {
     fontSize: TITLE_SIZE
   },
+  cardsContainer: {
+    flex: 4,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginLeft: 10,
+    marginRight: 10
+  },
+  card:{
+    width: "50%",
+    height: "40%",
+    alignContent: "stretch"
+  },
   microphoneContainer: {
     flex: 1,
     minHeight: ICON_RECORD_SIZE,
@@ -783,6 +830,19 @@ const styles = StyleSheet.create({
   },
   rateSlider: {
     width: DEVICE_WIDTH / 2.0,
+  },
+  button: {
+    margin: 5,
+    borderRadius: 10,
+    // backgroundColor: '#fff',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+        // width: 100,
+        // height: 100
+  },
+  buttonText: {
+    textAlign: 'center',
+    backgroundColor: 'transparent',
   },
 });
 
