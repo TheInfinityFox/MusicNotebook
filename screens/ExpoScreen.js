@@ -92,6 +92,8 @@ export default class ExpoScreen extends React.Component {
       this.setState({ fontLoaded: true });
     })();
     this._askForPermissions();
+    console.log(FileSystem.documentDirectory);
+    console.log(FileSystem.cacheDirectory);
   }
 
   componentDidUpdate() {
