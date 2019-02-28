@@ -9,6 +9,7 @@ import LinksScreen from '../screens/LinksScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import ExpoScreen from '../screens/ExpoScreen';
 import SnackScreen from '../screens/SnackScreen';
+import StageScreen from '../screens/StageScreen';
 
 const ProjectStack = createStackNavigator({
   Home: ProjectScreen,
@@ -102,12 +103,26 @@ SnackStack.navigationOptions = {
   ),
 };
 
+const StageStack = createStackNavigator({
+  Stage: StageScreen,
+});
+
+SnackStack.navigationOptions = {
+  tabBarLabel: 'Stage',
+  tabBarIcon: ({ focused }) => (
+    <TabBarIcon
+      focused={focused}
+      name={Platform.OS === 'ios' ? 'ios-options' : 'md-options'}
+    />
+  ),
+};
+
 export default createBottomTabNavigator({
+  StageStack,
   ExpoStack,
   ProjectStack,
   DemoStack,
   LinksStack,
   // SettingsStack,
-  
   SnackStack
 });
