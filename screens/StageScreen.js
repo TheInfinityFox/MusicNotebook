@@ -1,33 +1,65 @@
 import React, { Component } from 'react';
-import { Text, View, StyleSheet, TouchableOpacity, Platform, ScrollView } from 'react-native';
+import { Text, View, StyleSheet, TouchableOpacity, Platform, ScrollView, TouchableHighlight, TextInput} from 'react-native';
 import { Constants, Audio } from 'expo';
 import { Icon } from 'react-native-elements'
+import Modal from 'react-native-modal'
 
 
 export default class StageScreen extends Component {
     state = {
-
+        textModalVisible: false,
+        text: 'hi'
     };
 
     static navigationOptions = {
         title: 'Project',
     };
 
+    _toggleModal = (visible) => {
+        this.setState({textModalVisible: visible});
+    }
+
     render() {
         return (
             <View style={styles.container}>
+                <Modal
+                    isVisible={this.state.textModalVisible}>
+                    <View style={styles.modalContainer}>
+                    <TextInput
+                        style={{height: 40, borderColor: 'gray', borderWidth: 1}}
+                        onChangeText={(text) => this.setState({text})}
+                        value={this.state.text}
+                    />
+                        <TouchableHighlight style={styles.wrapper} underlayColor='white' onPress = {() => {
+                            this._toggleModal(!this.state.textModalVisible)}}>
+                            <Text>Close Modal</Text>
+                        </TouchableHighlight>
+                    </View>
+                    
+                </Modal>
                 <View style={styles.contentContainer}>
                     <ScrollView>
-                        <Text>Hi</Text>
+                        <Text>{this.state.text}</Text>
                     </ScrollView>
                 </View>
                 <View style={styles.utilityContainer}>
-                    <Icon
-                        reverse
-                        name='ios-american-football'
-                        type='ionicon'
-                        color='#517fa4'
-                    />a
+                    <TouchableHighlight onPress={() => this.setState({textModalVisible: !this.state.textModalVisible})}>
+                        <Icon
+                            reverse
+                            underlayColor='white'
+                            name='note-add'
+                            type='material'
+                            color='#517fa4'
+                        />
+                    </TouchableHighlight>
+                    <TouchableHighlight>
+                        <Icon
+                            reverse
+                            name='mic'
+                            type='material'
+                            color='#517fa4'
+                        />
+                    </TouchableHighlight>
                 </View>
             </View>
         );
@@ -63,6 +95,13 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: 'white',
         paddingVertical: 1,
+        flexDirection: 'row',
+        justifyContent: 'space-around',
         flex: 1
-    }
+    },
+    modalContainer:{
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+    wrapper: {}
 });
