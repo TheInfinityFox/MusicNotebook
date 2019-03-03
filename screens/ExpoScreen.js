@@ -16,7 +16,7 @@ import {
   View
 } from 'react-native';
 import Expo, { Asset, Audio, Constants, FileSystem, Font, Permissions } from 'expo';
-// import { FontAwesome } from '@expo/vector-icons';
+ import { FontAwesome } from '@expo/vector-icons';
 
 class Icon {
   constructor(module, width, height) {
