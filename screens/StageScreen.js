@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Text, View, StyleSheet, TouchableOpacity, Platform, ScrollView, TouchableHighlight, TextInput} from 'react-native';
-import { Constants, Audio } from 'expo';
+import { Audio } from 'expo-av';
+import Constants from 'expo-constants';
 import { Icon } from 'react-native-elements'
 import Modal from 'react-native-modal'
 

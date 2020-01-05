@@ -8,14 +8,18 @@ import {
   Image,
   Platform,
   Slider,
-  StatusBar,
   StyleSheet,
   Text,
   TouchableHighlight,
   TouchableOpacity,
   View
 } from 'react-native';
-import Expo, { Asset, Audio, Constants, FileSystem, Font, Permissions } from 'expo';
+import Constants from 'expo-constants';
+import * as Font from 'expo-font';
+import Expo, { Permissions } from 'expo';
+import * as FileSystem from 'expo-file-system';
+import { Audio } from 'expo-av';
+import {Asset} from 'expo-asset';
 // import { FontAwesome } from '@expo/vector-icons';
 
 class Icon {
@@ -26,7 +30,7 @@ class Icon {
     Asset.fromModule(this.module).downloadAsync();
   }
 }
-
+const STATUS_BAR_HEIGHT = Constants.statusBarHeight;
 const ICON_RECORD_BUTTON = new Icon(require('../assets/images/record_button.png'), 70, 119);
 const ICON_RECORDING = new Icon(require('../assets/images/record_icon.png'), 20, 14);
 
@@ -700,7 +704,7 @@ const styles = StyleSheet.create({
     // minHeight: TITLE_SIZE,
     // maxHeight: TITLE_SIZE,
     alignItems: 'center',
-    paddingTop: Constants.statusBarHeight
+    //paddingTop: Constants.statusBarHeight
   },
   titleText: {
     fontSize: TITLE_SIZE

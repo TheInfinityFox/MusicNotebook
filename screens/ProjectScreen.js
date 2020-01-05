@@ -1,8 +1,8 @@
 import React from 'react';
-import { ScrollView} from 'react-native';
+import { ScrollView, FlatList} from 'react-native';
 import { ExpoLinksView } from '@expo/samples';
 
-import { View, ListView, StyleSheet, Text } from 'react-native';
+import { View, StyleSheet, Text } from 'react-native';
 
 
 import { AsyncStorage } from "react-native"
@@ -28,10 +28,10 @@ export default class ProjectsScreen extends React.Component {
   constructor(props) {
     super(props);
 
-    const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
-    this.state = {
-      dataSource: ds.cloneWithRows(examples),
-    };
+    // const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
+    // this.state = {
+    //   dataSource: ds.cloneWithRows(examples),
+    // };
     // console.log(this.state.dataSource);
   }
   
@@ -41,9 +41,9 @@ export default class ProjectsScreen extends React.Component {
 
   render() {
     return (
-      <ListView
+      <FlatList
         style={styles.container}
-        dataSource={this.state.dataSource}
+        //dataSource={this.state.dataSource}
         renderRow={(examples) => <Row {...examples} />}
         renderSeparator={(sectionId, rowId) => <View key={rowId} style={styles.separator} />}
       />
