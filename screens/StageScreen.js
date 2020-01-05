@@ -9,7 +9,8 @@ import Modal from 'react-native-modal'
 export default class StageScreen extends Component {
     state = {
         textModalVisible: false,
-        text: 'hi'
+        modalText: 'Enter text input here...',
+        projectContent: []
     };
 
     static navigationOptions = {
@@ -20,6 +21,49 @@ export default class StageScreen extends Component {
         this.setState({textModalVisible: visible});
     }
 
+    _appendTextEntry = (text) => {
+        var textObject = {
+            "text": text,
+            "type": "text"
+        }
+        this.setState(previousState => ({
+            projectContent: [...previousState.projectContent, textObject]
+        }));
+    }
+
+    _renderContent = () => {
+        console.log(this.state);
+        return(
+            this.state.projectContent.length === 0 ? (
+                <View style={styles.contentItemText}>
+                    <Text>No content yet! Click the buttons below to add new text or new audio recording.</Text>
+                </View>
+            ) : (
+                this.state.projectContent.map((item, key) => {
+                    if(item.type === 'text'){
+                        return(
+                            <View key={key} style={styles.contentItemText}>
+                                <Text>{item.text}</Text>
+                            </View>
+                        )
+                    }
+                    else if(item.type === 'audio'){
+                        return (
+                            <View key={key}>
+                               <Icon
+                                    name='play-circle-filled'
+                                    type='material'
+                                    color='#517fa4'
+                                />
+                            </View>
+                        )
+                    }
+                }
+                )
+            )
+        )
+    }
+
     render() {
         return (
             <View style={styles.container}>
@@ -27,27 +71,32 @@ export default class StageScreen extends Component {
                     isVisible={this.state.textModalVisible}>
                     <View style={styles.modalContainer}>
                     <TextInput
-                        style={{height: 40, borderColor: 'gray', borderWidth: 1}}
-                        onChangeText={(text) => this.setState({text})}
-                        value={this.state.text}
+                        placeholder="Enter your text here!"
+                        onChangeText={(text) => this.setState({modalText: text})}
                     />
+                    <View>
                         <TouchableHighlight style={styles.wrapper} underlayColor='white' onPress = {() => {
                             this._toggleModal(!this.state.textModalVisible)}}>
                             <Text>Close Modal</Text>
                         </TouchableHighlight>
+                        <TouchableHighlight style={styles.wrapper} underlayColor='white' onPress = {() => {
+                            this._appendTextEntry(this.state.modalText);
+                            this._toggleModal(!this.state.textModalVisible)}}>
+                            <Text>Submit</Text>
+                        </TouchableHighlight>
+                    </View>
                     </View>
                     
                 </Modal>
                 <View style={styles.contentContainer}>
                     <ScrollView>
-                        <Text>{this.state.text}</Text>
+                       {this._renderContent()}
                     </ScrollView>
                 </View>
                 <View style={styles.utilityContainer}>
-                    <TouchableHighlight onPress={() => this.setState({textModalVisible: !this.state.textModalVisible})}>
+                    <TouchableHighlight style={styles.wrapper} underlayColor='white' onPress={() => this.setState({textModalVisible: !this.state.textModalVisible})}>
                         <Icon
                             reverse
-                            underlayColor='white'
                             name='note-add'
                             type='material'
                             color='#517fa4'
@@ -103,6 +152,14 @@ const styles = StyleSheet.create({
     modalContainer:{
         alignItems: 'center',
         justifyContent: 'center'
+    },
+    contentItemText:{
+        padding: 15,
+        fontSize: 20
+    },
+    contentItemAudio:{
+        padding: 15,
+        fontSize: 20
     },
     wrapper: {}
 });

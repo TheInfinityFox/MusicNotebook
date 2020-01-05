@@ -14,6 +14,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+<<<<<<< HEAD
 import Constants from 'expo-constants';
 import * as Font from 'expo-font';
 import Expo, { Permissions } from 'expo';
@@ -21,6 +22,10 @@ import * as FileSystem from 'expo-file-system';
 import { Audio } from 'expo-av';
 import {Asset} from 'expo-asset';
 // import { FontAwesome } from '@expo/vector-icons';
+=======
+import Expo, { Asset, Audio, Constants, FileSystem, Font, Permissions } from 'expo';
+ import { FontAwesome } from '@expo/vector-icons';
+>>>>>>> 6afa0b7eaa78655eba1121966390e095bfeb4e51
 
 class Icon {
   constructor(module, width, height) {
