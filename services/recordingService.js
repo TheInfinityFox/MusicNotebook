@@ -4,8 +4,6 @@ import uuidv1 from 'uuid';
 var recordingService = {
     
     createSoundObject(sound, lane){
-        
-        
         FileSystem.getFreeDiskStorageAsync().then(freeDiskStorage => {
             // Android: 17179869184
             // iOS: 17179869184
@@ -23,7 +21,6 @@ var recordingService = {
         //TODO: Add lane to file system
 
         return lane;
-
     }
 
 }

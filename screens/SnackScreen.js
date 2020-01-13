@@ -39,7 +39,7 @@ export default class SnackScreen extends Component {
 
   _onPlaybackStatusUpdate = (playbackStatus) => {
 
-    console.log(Date.now());
+    // console.log(Date.now());
     if (!playbackStatus.isLoaded) {
       // Update your UI for the unloaded state
       if (playbackStatus.error) {
