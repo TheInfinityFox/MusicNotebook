@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Text,
   TouchableHighlight,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import { Asset } from 'expo-asset';
@@ -53,6 +54,7 @@ export default class I1Screen extends Component {
     this.recording = null;
     this.playingSounds = [];
     this.lanes = {};
+    this.sounds = {};
     this.currentSoundBeginning = null;
 
     this.recordingSettings = JSON.parse(JSON.stringify(Audio.RECORDING_OPTIONS_PRESET_LOW_QUALITY));
@@ -84,6 +86,7 @@ export default class I1Screen extends Component {
   };
 
   _updateScreenForSoundStatus = status => {
+    console.log("Sound status", status);
     if (status.isLoaded) {
       this.setState({
         soundDuration: status.durationMillis,
@@ -111,7 +114,7 @@ export default class I1Screen extends Component {
 
   _updateScreenForRecordingStatus = status => {
     //What is status?
-    console.log('status', status); //is this the same as recording? down below?
+    console.log('recording status', status); //is this the same as recording? down below?
     if (status.canRecord) {
       this.setState({
         isRecording: status.isRecording,
@@ -136,6 +139,8 @@ export default class I1Screen extends Component {
 
 
     //TODO: Maybe only do this the first sound
+
+    
     await Audio.setAudioModeAsync({
       allowsRecordingIOS: true,
       interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX,
@@ -145,6 +150,7 @@ export default class I1Screen extends Component {
       playThroughEarpieceAndroid: false,
       staysActiveInBackground: true,
     });
+    
 
     console.log("recording!", this.recording)
     //I think its fine to just have 1 recording at a time
@@ -198,10 +204,8 @@ export default class I1Screen extends Component {
       this._updateScreenForSoundStatus
     );
 
-    this.setState({
-      lanes: recordingService.createSoundObject(sound, this.state.lanes)
-    });
-
+    var {soundObject, id} = recordingService.createSoundObject(sound, info, this.state.lanes);
+    this.sounds[id] = soundObject;
     // take the sound object and add it to our schema. 
     //Lane: 1
     //sounds: [1] 
@@ -225,15 +229,48 @@ export default class I1Screen extends Component {
 
 
   //We need to find out where in the global time we are at. we then determine which sound to play, and at what time within. 
-  _onPlayPausePressed = () => {
-    if (this.sound != null) {
+  _onPlayPausePressed = (sound) => {
+    if (sound != null) {
       if (this.state.isPlaying) {
-        this.sound.pauseAsync();
+        sound.pauseAsync();
       } else {
-        this.sound.playAsync();
+        sound.getStatusAsync().then((status) => {
+          console.log("statussss", status)
+          if(status.positionMillis === status.durationMillis)
+            sound.replayAsync();
+        })
+        sound.playAsync();
       }
     }
   };
+
+  async _deleteSound(id) {
+    this.setState({
+      isLoading: true,
+    });
+    var sound = this.sounds[id].EXPO_Sound; 
+    if (sound != null) {
+      if (this.state.isPlaying) {
+        sound.stopAsync();
+      }
+
+      await sound.unloadAsync();
+
+      recordingService.deleteSoundObject(this.sounds[id]).then((result) => {
+        if(result)
+          delete this.sounds[id];
+      }).catch(async () => {
+        console.log("could not delete object.");
+        await sound.loadAsync();
+      }).finally(() => {
+        this.setState({
+          isLoading: false,
+        });
+      });
+      
+
+    }
+  }
 
   //maybe we want to have a list of current sounds playing so that we can instantly stop. 
   _onStopPressed = () => {
@@ -270,6 +307,35 @@ export default class I1Screen extends Component {
   _onPitchCorrectionPressed = async value => {
     this._trySetRate(this.state.rate, !this.state.shouldCorrectPitch);
   };
+
+  _renderSoundBoxes() {
+    return (
+      this.sounds.length === 0 ? (
+        <View>
+          <Text>No elements yet!</Text>
+          <Text>No elements yet!</Text>
+          <Text>No elements yet!</Text>
+          <Text>No elements yet!</Text>
+          <Text>No elements yet!</Text>
+          <Text>No elements yet!</Text>
+        </View>
+      ) : (
+          Object.keys(this.sounds).map((key) => (
+            
+            <View key={key} style={styles.row}>
+              <TouchableOpacity style={styles.button} onPress={() => this._onPlayPausePressed(this.sounds[key].EXPO_Sound)}>
+                <Text style={styles.buttonText}>
+                  {key}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => this._deleteSound(key)}>
+              <FontAwesome name="trash" size={ICON_RECORD_SIZE} />
+              </TouchableOpacity>
+            </View>
+          ))
+        )
+    );
+  }
 
   // _onSeekSliderValueChange = value => {
   //   if (this.sound != null && !this.isSeeking) {
@@ -352,9 +418,12 @@ export default class I1Screen extends Component {
         <View />
       </View>
     ) : (
-          <View style = {styles.container}>
+          <View style={styles.container}>
+            <View style = {styles.container}>
+              {this._renderSoundBoxes()}
+            </View>
             <View style={styles.recordingContainer}>
-              {/* <View/> */}
+
               <View><TouchableHighlight
                 underlayColor={'white'}
                 style={styles.wrapper}
@@ -362,22 +431,25 @@ export default class I1Screen extends Component {
                 disabled={this.state.isLoading}>
                 <FontAwesome name="microphone" size={ICON_RECORD_SIZE} />
               </TouchableHighlight>
+              <Text style={[styles.liveText, { fontFamily: 'space-mono-regular' }]}>
+                  {this.state.isRecording ? 'LIVE' : 'NOT LIVE'}
+              </Text>
               </View>
               <View>
-                <Text style={[styles.liveText, { fontFamily: 'space-mono-regular' }]}>
+                {/* <Text style={[styles.liveText, { fontFamily: 'space-mono-regular' }]}>
                   {this.state.isRecording ? 'LIVE' : 'NOT LIVE'}
-                </Text>
+                </Text> */}
                 <View>
                   <Image
                     style={[styles.image, { opacity: this.state.isRecording ? 1.0 : 0.0 }]}
                     source={ICON_RECORDING.module}
                   />
                 </View>
-                <View />
+
               </View>
             </View>
           </View>
-          
+
         )
   }
 }

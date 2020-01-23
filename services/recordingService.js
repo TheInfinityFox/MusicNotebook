@@ -3,7 +3,7 @@ import uuidv1 from 'uuid';
 
 var recordingService = {
     
-    createSoundObject(sound, lane){
+    createSoundObject(sound, info, lanes){
         FileSystem.getFreeDiskStorageAsync().then(freeDiskStorage => {
             // Android: 17179869184
             // iOS: 17179869184
@@ -12,15 +12,31 @@ var recordingService = {
 
         var newSoundObject = {
             'EXPO_Sound': sound,
-            'id': uuidv1(),
+            'file_uri': info.uri,
             'startTime': "todo" //TODO
         }
 
-        lane.sounds.push(newSoundObject);
+        //lane.sounds.push(newSoundObject);
         
         //TODO: Add lane to file system
 
-        return lane;
+        return {
+            soundObject: newSoundObject, 
+            id: uuidv1()
+        };
+    },
+
+    async deleteSoundObject(sound){
+        await FileSystem.deleteAsync(sound.file_uri).catch(() => {
+            console.error("Could not delete sound");
+            return false;
+        });
+
+        return true;
+
+        //lane.sounds.push(newSoundObject);
+        
+        //TODO: Add lane to file system
     }
 
 }

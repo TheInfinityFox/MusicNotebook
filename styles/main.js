@@ -20,8 +20,8 @@ export const styles = StyleSheet.create({
           backgroundColor: 'red',
         },
         container: {
-          flex: 1,
-          flexDirection: 'column-reverse',
+          flex: 3,
+          flexDirection: 'column',
           // justifyContent: 'space-between',
           //alignItems: 'center',
           // alignSelf: 'stretch',
@@ -31,28 +31,29 @@ export const styles = StyleSheet.create({
           // paddingTop: Constants.statusBarHeight,
           // paddingBottom: 500
         },
+        
         recordingContainer: {
             //position: 'absolute',
             // bottom: 0,
             // left: 0,
             // right: 0,
-            // ...Platform.select({
-            //     ios: {
-            //         shadowColor: 'black',
-            //         shadowOffset: { height: -3 },
-            //         shadowOpacity: 0.1,
-            //         shadowRadius: 3,
-            //     },
-            //     android: {
-            //         elevation: 20,
-            //     },
-            // }),
-            // alignItems: 'center',
+            ...Platform.select({
+                ios: {
+                    shadowColor: 'black',
+                    shadowOffset: { height: -3 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 3,
+                },
+                android: {
+                    elevation: 20,
+                },
+            }),
+            alignItems: 'center',
             backgroundColor: 'white',
             //paddingVertical: 1,
             flexDirection: 'row',
-            // justifyContent: 'space-around',
-            flex: .5
+            justifyContent: 'space-around',
+            flex: 1
           },
           wrapper: {},
           image: {
@@ -63,4 +64,21 @@ export const styles = StyleSheet.create({
           liveText: {
             color: LIVE_COLOR,
           },
+          button: {
+            margin: 5,
+            borderRadius: 10,
+            // backgroundColor: '#fff',
+            justifyContent: 'center',
+            backgroundColor: '#fff',
+            width: 100,
+            height: 100
+          },
+          buttonText: {
+            textAlign: 'center',
+            backgroundColor: 'transparent',
+          },
+          row: {
+            flexDirection: 'row',
+            justifyContent: 'space-around'
+          }
       });
