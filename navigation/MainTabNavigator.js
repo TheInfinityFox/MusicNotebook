@@ -11,6 +11,8 @@ import ExpoScreen from '../screens/ExpoScreen';
 import SnackScreen from '../screens/SnackScreen';
 import StageScreen from '../screens/StageScreen';
 
+import I1Screen from '../screens/I1Screen';
+
 const ProjectStack = createStackNavigator({
   Home: ProjectScreen,
 });
@@ -107,8 +109,22 @@ const StageStack = createStackNavigator({
   Stage: StageScreen,
 });
 
-SnackStack.navigationOptions = {
+StageStack.navigationOptions = {
   tabBarLabel: 'Stage',
+  tabBarIcon: ({ focused }) => (
+    <TabBarIcon
+      focused={focused}
+      name={Platform.OS === 'ios' ? 'ios-options' : 'md-options'}
+    />
+  ),
+};
+
+const I1Stack = createStackNavigator({
+  I1: I1Screen,
+});
+
+I1Stack.navigationOptions = {
+  tabBarLabel: 'I1',
   tabBarIcon: ({ focused }) => (
     <TabBarIcon
       focused={focused}
@@ -124,5 +140,6 @@ export default createBottomTabNavigator({
   DemoStack,
   LinksStack,
   // SettingsStack,
-  SnackStack
+  SnackStack,
+  I1Stack
 });
