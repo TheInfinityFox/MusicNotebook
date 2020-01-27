@@ -9,6 +9,8 @@ import {
     TouchableOpacity,
     View
   } from 'react-native';
+  import Constants from 'expo-constants';
+
 
   const BACKGROUND_COLOR = '#FFF8ED';
   const LIVE_COLOR = '#FF0000';
@@ -18,6 +20,10 @@ export const styles = StyleSheet.create({
         emptyContainer: {
           alignSelf: 'stretch',
           backgroundColor: 'red',
+        },
+        parentContainer:{
+          flex:1,
+          // paddingTop: Constants.statusBarHeight,
         },
         container: {
           flex: 3,
@@ -48,12 +54,27 @@ export const styles = StyleSheet.create({
                     elevation: 20,
                 },
             }),
-            alignItems: 'center',
             backgroundColor: 'white',
-            //paddingVertical: 1,
-            flexDirection: 'row',
-            justifyContent: 'space-around',
+            flexDirection: 'column',
             flex: 1
+          },
+          recordingContainerIcons: {
+            flex: 3,
+            justifyContent: 'space-around',
+            alignItems: 'center',
+            flexDirection: 'row',
+          },
+          recordingContainerIconsHalf: {
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "space-around",
+            flexDirection: "row"
+          },
+          recordingContainerMisc: {
+            flex: 1,
+            justifyContent: 'space-between',
+            flexDirection: 'row',
+            backgroundColor: 'white'
           },
           wrapper: {},
           image: {

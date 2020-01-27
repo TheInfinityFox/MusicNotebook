@@ -17,7 +17,7 @@ import * as Permissions from 'expo-permissions';
 import { styles } from '../styles/main';
 import { FontAwesome } from '@expo/vector-icons';
 
-
+import ProjectsPage from '../components/ProjectsPage';
 import recordingService from '../services/recordingService';
 
 class Icon {
@@ -33,6 +33,9 @@ const ICON_RECORDING = new Icon(require('../assets/images/icons8-record-40.png')
 const ICON_RECORD_SIZE = 60;
 
 export default class I1Screen extends Component {
+  static navigationOptions = {
+    title: 'hi',
+  };
   constructor(props) {
     super(props);
     this.state = {
@@ -50,7 +53,10 @@ export default class I1Screen extends Component {
       shouldCorrectPitch: true,
       volume: 1.0,
       rate: 1.0,
+      currentSound: null
     };
+    this.project = null;
+    
     this.recording = null;
     this.playingSounds = [];
     this.lanes = {};
@@ -58,11 +64,10 @@ export default class I1Screen extends Component {
     this.currentSoundBeginning = null;
 
     this.recordingSettings = JSON.parse(JSON.stringify(Audio.RECORDING_OPTIONS_PRESET_LOW_QUALITY));
-
-
-
-
   }
+  
+
+
   componentDidMount() {
 
     (async () => {
@@ -86,7 +91,6 @@ export default class I1Screen extends Component {
   };
 
   _updateScreenForSoundStatus = status => {
-    console.log("Sound status", status);
     if (status.isLoaded) {
       this.setState({
         soundDuration: status.durationMillis,
@@ -100,6 +104,12 @@ export default class I1Screen extends Component {
         shouldCorrectPitch: status.shouldCorrectPitch,
         isPlaybackAllowed: true,
       });
+
+      if (status.didJustFinish)
+        this.setState({
+          currentSound: null
+        });
+
     } else {
       this.setState({
         soundDuration: null,
@@ -114,7 +124,6 @@ export default class I1Screen extends Component {
 
   _updateScreenForRecordingStatus = status => {
     //What is status?
-    console.log('recording status', status); //is this the same as recording? down below?
     if (status.canRecord) {
       this.setState({
         isRecording: status.isRecording,
@@ -140,7 +149,7 @@ export default class I1Screen extends Component {
 
     //TODO: Maybe only do this the first sound
 
-    
+
     await Audio.setAudioModeAsync({
       allowsRecordingIOS: true,
       interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX,
@@ -150,9 +159,7 @@ export default class I1Screen extends Component {
       playThroughEarpieceAndroid: false,
       staysActiveInBackground: true,
     });
-    
 
-    console.log("recording!", this.recording)
     //I think its fine to just have 1 recording at a time
     if (this.recording !== null) {
       this.recording.setOnRecordingStatusUpdate(null);
@@ -162,7 +169,6 @@ export default class I1Screen extends Component {
     const recording = new Audio.Recording();
 
     await recording.prepareToRecordAsync(this.recordingSettings);
-    console.log('recording', recording);
     recording.setOnRecordingStatusUpdate(this._updateScreenForRecordingStatus);
 
     this.recording = recording;
@@ -204,7 +210,7 @@ export default class I1Screen extends Component {
       this._updateScreenForSoundStatus
     );
 
-    var {soundObject, id} = recordingService.createSoundObject(sound, info, this.state.lanes);
+    var { soundObject, id } = recordingService.createSoundObject(sound, info, this.state.lanes);
     this.sounds[id] = soundObject;
     // take the sound object and add it to our schema. 
     //Lane: 1
@@ -230,13 +236,27 @@ export default class I1Screen extends Component {
 
   //We need to find out where in the global time we are at. we then determine which sound to play, and at what time within. 
   _onPlayPausePressed = (sound) => {
+
+    console.log("sound!", sound);
+    if (sound === null && this.state.currentSound === null) {
+      console.log('play the first sound if we have it')
+    }
+
+    else if (sound === null && this.state.currentSound !== null) {
+      sound = this.state.currentSound;
+    }
+
     if (sound != null) {
+
+      this.setState({
+        currentSound: sound
+      });
+
       if (this.state.isPlaying) {
         sound.pauseAsync();
       } else {
         sound.getStatusAsync().then((status) => {
-          console.log("statussss", status)
-          if(status.positionMillis === status.durationMillis)
+          if (status.positionMillis === status.durationMillis)
             sound.replayAsync();
         })
         sound.playAsync();
@@ -248,16 +268,19 @@ export default class I1Screen extends Component {
     this.setState({
       isLoading: true,
     });
-    var sound = this.sounds[id].EXPO_Sound; 
+    var sound = this.sounds[id].EXPO_Sound;
     if (sound != null) {
       if (this.state.isPlaying) {
         sound.stopAsync();
       }
 
       await sound.unloadAsync();
+      this.setState({
+        currentSound: null
+      });
 
       recordingService.deleteSoundObject(this.sounds[id]).then((result) => {
-        if(result)
+        if (result)
           delete this.sounds[id];
       }).catch(async () => {
         console.log("could not delete object.");
@@ -267,7 +290,7 @@ export default class I1Screen extends Component {
           isLoading: false,
         });
       });
-      
+
 
     }
   }
@@ -321,7 +344,7 @@ export default class I1Screen extends Component {
         </View>
       ) : (
           Object.keys(this.sounds).map((key) => (
-            
+
             <View key={key} style={styles.row}>
               <TouchableOpacity style={styles.button} onPress={() => this._onPlayPausePressed(this.sounds[key].EXPO_Sound)}>
                 <Text style={styles.buttonText}>
@@ -329,7 +352,7 @@ export default class I1Screen extends Component {
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={() => this._deleteSound(key)}>
-              <FontAwesome name="trash" size={ICON_RECORD_SIZE} />
+                <FontAwesome name="trash" size={ICON_RECORD_SIZE} />
               </TouchableOpacity>
             </View>
           ))
@@ -407,7 +430,11 @@ export default class I1Screen extends Component {
   /*********************************************************************************************** */
 
   render() {
-    return !this.state.fontLoaded ? (
+    return this.project === null ? (
+      <View style = {styles.container}>
+        <ProjectsPage/>
+      </View>
+    ) : !this.state.fontLoaded ? (
       <View style={styles.emptyContainer} />
     ) : !this.state.haveRecordingPermissions ? (
       <View style={styles.container}>
@@ -418,35 +445,66 @@ export default class I1Screen extends Component {
         <View />
       </View>
     ) : (
-          <View style={styles.container}>
-            <View style = {styles.container}>
+          <View style={styles.parentContainer}>
+            <View style={styles.container}>
               {this._renderSoundBoxes()}
             </View>
             <View style={styles.recordingContainer}>
-
-              <View><TouchableHighlight
-                underlayColor={'white'}
-                style={styles.wrapper}
-                onPress={this._onRecordPressed}
-                disabled={this.state.isLoading}>
-                <FontAwesome name="microphone" size={ICON_RECORD_SIZE} />
-              </TouchableHighlight>
-              <Text style={[styles.liveText, { fontFamily: 'space-mono-regular' }]}>
-                  {this.state.isRecording ? 'LIVE' : 'NOT LIVE'}
-              </Text>
-              </View>
-              <View>
-                {/* <Text style={[styles.liveText, { fontFamily: 'space-mono-regular' }]}>
-                  {this.state.isRecording ? 'LIVE' : 'NOT LIVE'}
-                </Text> */}
-                <View>
-                  <Image
-                    style={[styles.image, { opacity: this.state.isRecording ? 1.0 : 0.0 }]}
-                    source={ICON_RECORDING.module}
-                  />
+              <View style={styles.recordingContainerIcons}>
+                <View style={styles.recordingContainerIconsHalf}><TouchableHighlight
+                  underlayColor={'white'}
+                  style={styles.wrapper}
+                  onPress={() => this._onPlayPausePressed(null)}
+                  disabled={this.state.isLoading}>
+                  {
+                    this.state.isPlaying ?
+                      <FontAwesome name="pause" size={ICON_RECORD_SIZE} /> :
+                      <FontAwesome name="play" size={ICON_RECORD_SIZE} />
+                  }
+                </TouchableHighlight>
                 </View>
 
+
+                <View style={styles.recordingContainerIconsHalf}>
+                  <View style={styles.recordingContainerIconsHalf}>
+                    <TouchableHighlight
+                      underlayColor={'white'}
+                      style={styles.wrapper}
+                      onPress={this._onRecordPressed}
+                      disabled={this.state.isLoading}>
+                      <FontAwesome name="microphone" size={ICON_RECORD_SIZE} />
+                    </TouchableHighlight>
+
+                  </View>
+                  <View style={styles.recordingContainerIconsHalf}>
+                    <Text style={[styles.liveText, { fontFamily: 'space-mono-regular' }]}>
+                      {this.state.isRecording ? 'LIVE' : 'NOT LIVE'}
+                    </Text>
+                    <Image
+                      style={[styles.image, { opacity: this.state.isRecording ? 1.0 : 0.0 }]}
+                      source={ICON_RECORDING.module}
+                    />
+                  </View>
+                </View>
+                <View>
+
+                </View>
               </View>
+              <View style={styles.recordingContainerMisc}>
+                <Text>INFO</Text>
+                <Text>INFO</Text>
+                <Text>INFO</Text>
+                <Text>INFO</Text>
+
+              </View>
+
+
+              {/* <Text style={[styles.liveText, { fontFamily: 'space-mono-regular' }]}>
+                  {this.state.isRecording ? 'LIVE' : 'NOT LIVE'}
+                </Text> */}
+
+
+
             </View>
           </View>
 
